@@ -31,21 +31,25 @@ string hasData(string s) {
   return "";
 }
 
+#define STEERING_ENABLE_TWIDDLE
+
 int main() {
     uWS::Hub h;
 
+    //Setting desired speed
+    constexpr double desiredSpeed = 15.0;
 
     //Best after twidle 3
-    double steeringInitP = 0.643459;
-    double steeringInitI = 0.0;
-    double steeringInitD = 2.0941;
-    double alpha = 0.2;
+    // double steeringInitP = 0.643459;
+    // double steeringInitI = 0.0;
+    // double steeringInitD = 2.0941;
+    // double alpha = 0.2;
 
     //Best after twidle 1
-    // double steeringInitP = 0.9975;
-    // double steeringInitI = 0.0;
-    // double steeringInitD = 2.58845;
-    // double alpha = 1.0;
+    double steeringInitP = 0.9975;
+    double steeringInitI = 0.0;
+    double steeringInitD = 2.58845;
+    double alpha = 0.0;
 
     double dt = 1.0;
     double maxValue = 0.45;
@@ -55,22 +59,32 @@ int main() {
     PID steeringPid;
     steeringPid.Init( steeringInitP, steeringInitI, steeringInitD, dt, maxValue, maxISum, alpha );
 
+
+#ifdef STEERING_ENABLE_TWIDDLE
     std::vector< double > steeringParams{ steeringInitP,      steeringInitD     };
     std::vector< double > steeringDp    { steeringInitP*0.5,  steeringInitD*0.5 };
     
     //Twiddle - 3700 values. Aprox 1 lap on the track
-    TwiddleStateMachine tdSteering( steeringParams.size(), 3700, steeringParams, steeringDp );
+    TwiddleStateMachine tdSteering( steeringParams.size(), 3800, steeringParams, steeringDp );
+#endif
 
 
     //Throttle Controller
     PID throttlePid;
-    throttlePid.Init( 0.06, 0.0, 0.0, dt, 1.0, 1.0, 1.0 ); 
+    throttlePid.Init( 0.06, 0.0, 0.0, dt, 1.0, 1.0, 0.0 ); 
 
     double steer_value;
     double throttle_value;
 
+#ifdef STEERING_ENABLE_TWIDDLE
     h.onMessage([&steeringPid, &throttlePid, &tdSteering, &steer_value, &throttle_value](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, 
                      uWS::OpCode opCode) {
+#else
+    h.onMessage([&steeringPid, &throttlePid, &steer_value, &throttle_value](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, 
+             uWS::OpCode opCode) {
+
+#endif
+
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
     // The 2 signifies a websocket event
@@ -83,6 +97,7 @@ int main() {
                 string event = j[0].get<string>();
 
                 if (event == "telemetry") {
+
                     // j[1] is the data JSON object
                     double cte = std::stod(j[1]["cte"].get<string>());
                     double speed = std::stod(j[1]["speed"].get<string>());
@@ -94,16 +109,17 @@ int main() {
                     const double steering_delta = new_steering_value - steer_value;
                     steer_value = new_steering_value;
 
-              
+#ifdef STEERING_ENABLE_TWIDDLE
                     //Updating PID Values for next iterations
                     tdSteering.update( cte, steering_delta*4.0 );
                     const double &kp = tdSteering.params()[0];
                     //const double &ki = tdSteering.params()[1];
                     const double &kd = tdSteering.params()[1];
                     steeringPid.UpdateConstants( kp, 0.0, kd );
+#endif
 
 
-                    const double speedError = ( speed - 15.0 );
+                    const double speedError = ( speed - desiredSpeed );
                     throttlePid.UpdateError( speedError );
                     throttle_value = throttlePid.GetOutput();
 
