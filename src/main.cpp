@@ -35,20 +35,27 @@ int main() {
     uWS::Hub h;
 
 
-    //Best after twidle 3 - action*1.0 //Trying to make it smoother at turns
+    //Best after twidle 3
     double steeringInitP = 0.643459;
     double steeringInitI = 0.0;
     double steeringInitD = 2.0941;
+    double alpha = 0.2;
+
+    //Best after twidle 1
+    // double steeringInitP = 0.9975;
+    // double steeringInitI = 0.0;
+    // double steeringInitD = 2.58845;
+    // double alpha = 1.0;
+
     double dt = 1.0;
     double maxValue = 0.45;
     double maxISum = 0.05;
-    double alpha = 0.2;
     
     //Steering controller
     PID steeringPid;
     steeringPid.Init( steeringInitP, steeringInitI, steeringInitD, dt, maxValue, maxISum, alpha );
 
-    std::vector< double > steeringParams{ steeringInitP,      steeringInitD};
+    std::vector< double > steeringParams{ steeringInitP,      steeringInitD     };
     std::vector< double > steeringDp    { steeringInitP*0.5,  steeringInitD*0.5 };
     
     //Twiddle - 3700 values. Aprox 1 lap on the track
