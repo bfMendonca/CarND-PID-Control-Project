@@ -51,9 +51,11 @@ int main() {
     double steeringInitD = 2.58845;
     double alpha = 0.0;
 
-    double dt = 1.0;
+
+    double dt = 1.0;        //Don't know the dt, but, for modularity, let's keep it here
     double maxValue = 0.45;
     double maxISum = 0.05;
+
     
     //Steering controller
     PID steeringPid;
@@ -73,17 +75,18 @@ int main() {
     PID throttlePid;
     throttlePid.Init( 0.06, 0.0, 0.0, dt, 1.0, 1.0, 0.0 ); 
 
-    double steer_value;
-    double throttle_value;
+    double steer_value = 0.0;
+    double throttle_value = 0.0;
+
 
 #ifdef STEERING_ENABLE_TWIDDLE
     h.onMessage([&steeringPid, &throttlePid, &tdSteering, &steer_value, &throttle_value](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, 
-                     uWS::OpCode opCode) {
+                    uWS::OpCode opCode) {
 #else
     h.onMessage([&steeringPid, &throttlePid, &steer_value, &throttle_value](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, 
-             uWS::OpCode opCode) {
-
+                    uWS::OpCode opCode) {
 #endif
+
 
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
@@ -109,6 +112,7 @@ int main() {
                     const double steering_delta = new_steering_value - steer_value;
                     steer_value = new_steering_value;
 
+
 #ifdef STEERING_ENABLE_TWIDDLE
                     //Updating PID Values for next iterations
                     tdSteering.update( cte, steering_delta*4.0 );
@@ -122,6 +126,7 @@ int main() {
                     const double speedError = ( speed - desiredSpeed );
                     throttlePid.UpdateError( speedError );
                     throttle_value = throttlePid.GetOutput();
+
 
                     json msgJson;
                     msgJson["steering_angle"] = steer_value;
