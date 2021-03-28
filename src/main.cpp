@@ -38,28 +38,16 @@ int main() {
     PID throttlePid;
 
     //Best after twidle 3 - action*1.0 //Trying to make it smoother at turns
-    double steeringInitP = 0.5;
+    double steeringInitP = 0.643459;
     double steeringInitI = 0.0;
-    double steeringInitD = 1.0;
+    double steeringInitD = 2.0941;
+    double dt = 1.0;
+    double maxValue = 0.45;
+    double maxISum = 0.05;
+    double alpha = 0.2;
 
-    //Best after twidle 2 - action*0.5 //Stable, bot harsh
-    // double steeringInitP = 1.02432;
-    // double steeringInitI = 0.0019455;
-    // double steeringInitD = 2.95661;
-
-    //Best after twidle 1
-    // double steeringInitP = 1.84324;
-    // double steeringInitI = 1e-9;
-    // double steeringInitD = 5.87899;
-
-    //Best after twidle 0
-    // double steeringInitP = 0.30759;
-    // double steeringInitI = 1e-4;
-    // double steeringInitD = 0.579;
-
-    steeringPid.Init( steeringInitP, steeringInitI, steeringInitD, 1.0, 0.45, 0.05, 0.2 );
-
-    throttlePid.Init( 0.6e-1, 5e-5, 1e-15, 1.0, 1.0, 1.0, 0.2 ); 
+    //Steering controller
+    steeringPid.Init( steeringInitP, steeringInitI, steeringInitD, dt, maxValue, maxISum, alpha );
 
     std::vector< double > steeringParams{ steeringInitP,      steeringInitD};
     std::vector< double > steeringDp    { steeringInitP*0.5,  steeringInitD*0.5 };
@@ -67,9 +55,11 @@ int main() {
     TwiddleStateMachine tdSteering( 2, 3700, steeringParams, steeringDp );
 
 
+    //Throttle Controller
+    throttlePid.Init( 0.06, 0.0, 0.0, dt, 1.0, 1.0, 1.0 ); 
+
     double steer_value;
     double throttle_value;
-
 
     h.onMessage([&steeringPid, &throttlePid, &tdSteering, &steer_value, &throttle_value](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, 
                      uWS::OpCode opCode) {
