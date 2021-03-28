@@ -52,7 +52,8 @@ int main() {
     std::vector< double > steeringParams{ steeringInitP,      steeringInitD};
     std::vector< double > steeringDp    { steeringInitP*0.5,  steeringInitD*0.5 };
     
-    TwiddleStateMachine tdSteering( 2, 3700, steeringParams, steeringDp );
+    //Twiddle - 3700 values. Aprox 1 lap on the track
+    TwiddleStateMachine tdSteering( steeringParams.size(), 3700, steeringParams, steeringDp );
 
 
     //Throttle Controller
