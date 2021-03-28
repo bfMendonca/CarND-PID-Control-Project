@@ -34,8 +34,6 @@ string hasData(string s) {
 int main() {
     uWS::Hub h;
 
-    PID steeringPid;
-    PID throttlePid;
 
     //Best after twidle 3 - action*1.0 //Trying to make it smoother at turns
     double steeringInitP = 0.643459;
@@ -45,8 +43,9 @@ int main() {
     double maxValue = 0.45;
     double maxISum = 0.05;
     double alpha = 0.2;
-
+    
     //Steering controller
+    PID steeringPid;
     steeringPid.Init( steeringInitP, steeringInitI, steeringInitD, dt, maxValue, maxISum, alpha );
 
     std::vector< double > steeringParams{ steeringInitP,      steeringInitD};
@@ -57,6 +56,7 @@ int main() {
 
 
     //Throttle Controller
+    PID throttlePid;
     throttlePid.Init( 0.06, 0.0, 0.0, dt, 1.0, 1.0, 1.0 ); 
 
     double steer_value;
