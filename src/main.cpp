@@ -31,7 +31,7 @@ string hasData(string s) {
   return "";
 }
 
-#define STEERING_ENABLE_TWIDDLE
+//#define STEERING_ENABLE_TWIDDLE
 
 int main() {
     uWS::Hub h;
